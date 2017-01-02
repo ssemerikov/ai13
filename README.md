@@ -1,37 +1,24 @@
-## Welcome to GitHub Pages
+## Інтелектуальні інформаційні системи: індивідуальні завдання з курсу
 
-You can use the [editor on GitHub](https://github.com/ssemerikov/ai13/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+20 грудня 2016 року в групі [І-13](http://vk.com/i13_kdpu) [ДВНЗ "Криворізький державний педагогічний університет"](http://kdpu.edu.ua/) відбувся захист індивідуальних завдань (проектів) з курсу "Інтелектуальні інформаційні системи".
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Основне середовище для виконання індивідуальних завдань - [DrRacket](http://racket-lang.org/), провідна тема - "Розробка нейронної мережі для ..." ([шаблонне завдання](https://github.com/ssemerikov/ai13/tree/master/example)).
 
-### Markdown
+### Виконані завдання
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ssemerikov/ai13/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+1. Бекмурадов Анварджан Бекмурадович. [Використання Palisade NeuralTools для побудови нейронних мереж](https://github.com/ssemerikov/ai13/tree/master/%D0%92%D0%B8%D0%BA%D0%BE%D1%80%D0%B8%D1%81%D1%82%D0%B0%D0%BD%D0%BD%D1%8F%20Palisade%20NeuralTools%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%BE%D0%B1%D1%83%D0%B4%D0%BE%D0%B2%D0%B8%20%D0%BD%D0%B5%D0%B9%D1%80%D0%BE%D0%BD%D0%BD%D0%B8%D1%85%20%D0%BC%D0%B5%D1%80%D0%B5%D0%B6)
+2. Володін Михайло Володимирович. [Нейронна мережа для розпізнавання зарубіжних фентезі-авторів](https://github.com/ssemerikov/ai13/tree/master/%D0%9D%D0%B5%D0%B9%D1%80%D0%BE%D0%BD%D0%BD%D0%B0%20%D0%BC%D0%B5%D1%80%D0%B5%D0%B6%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D1%80%D0%BE%D0%B7%D0%BF%D1%96%D0%B7%D0%BD%D0%B0%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%B7%D0%B0%D1%80%D1%83%D0%B1%D1%96%D0%B6%D0%BD%D0%B8%D1%85%20%D1%84%D0%B5%D0%BD%D1%82%D0%B5%D0%B7%D1%96-%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D1%96%D0%B2) [(відео захисту)]()
+3. Габер Наталія Юріївна. [Розробка Web-сайту мовою Scheme](https://github.com/ssemerikov/ai13/tree/master/%D0%A0%D0%BE%D0%B7%D1%80%D0%BE%D0%B1%D0%BA%D0%B0%20Web-%D1%81%D0%B0%D0%B9%D1%82%D1%83%20%D0%BC%D0%BE%D0%B2%D0%BE%D1%8E%20Scheme)
+4. Гаранін Олег Михайлович. [Розробка програми-співрозмовника](https://github.com/ssemerikov/ai13/tree/master/%D0%A0%D0%BE%D0%B7%D1%80%D0%BE%D0%B1%D0%BA%D0%B0%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%B8-%D1%81%D0%BF%D1%96%D0%B2%D1%80%D0%BE%D0%B7%D0%BC%D0%BE%D0%B2%D0%BD%D0%B8%D0%BA%D0%B0)
+5. Говорун Владислав Валерійович. [Прогнозування погоди](https://github.com/ssemerikov/ai13/tree/master/%D0%9F%D1%80%D0%BE%D0%B3%D0%BD%D0%BE%D0%B7%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%BF%D0%BE%D0%B3%D0%BE%D0%B4%D0%B8)
+6. Долотій Маргарита Геннадіївна. [Розпізнавання цифр у системі числення з основою 36](https://github.com/ssemerikov/ai13/tree/master/%D0%A0%D0%BE%D0%B7%D0%BF%D1%96%D0%B7%D0%BD%D0%B0%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D1%86%D0%B8%D1%84%D1%80%20%D1%83%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%96%20%D1%87%D0%B8%D1%81%D0%BB%D0%B5%D0%BD%D0%BD%D1%8F%20%D0%B7%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BE%D1%8E%2036) [(відео захисту)]()
+7. Єгоров Владислав Юрійович. [Розпізнавання рукописних букв українського алфавіту](https://github.com/ssemerikov/ai13/tree/master/%D0%A0%D0%BE%D0%B7%D0%BF%D1%96%D0%B7%D0%BD%D0%B0%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D1%80%D1%83%D0%BA%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%B8%D1%85%20%D0%B1%D1%83%D0%BA%D0%B2%20%D1%83%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%20%D0%B0%D0%BB%D1%84%D0%B0%D0%B2%D1%96%D1%82%D1%83) [(відео захисту)]()
+8. Касім Володимир Павлович. [Визначення параметрів фенотипу людини](https://github.com/ssemerikov/ai13/tree/master/%D0%92%D0%B8%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%BD%D1%8F%20%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%96%D0%B2%20%D1%84%D0%B5%D0%BD%D0%BE%D1%82%D0%B8%D0%BF%D1%83%20%D0%BB%D1%8E%D0%B4%D0%B8%D0%BD%D0%B8)
+9. Кацко Олександр Олександрович. [Експертна система для визначення хвороб органів дихання](https://github.com/ssemerikov/ai13/tree/master/%D0%95%D0%BA%D1%81%D0%BF%D0%B5%D1%80%D1%82%D0%BD%D0%B0%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%B8%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%BD%D1%8F%20%D1%85%D0%B2%D0%BE%D1%80%D0%BE%D0%B1%20%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D1%96%D0%B2%20%D0%B4%D0%B8%D1%85%D0%B0%D0%BD%D0%BD%D1%8F) [(відео захисту)]()
+10. Кривошея Сергій Сергійович. [Оцінка вартості автомобілю на вторинному ринку](https://github.com/ssemerikov/ai13/tree/master/%D0%9E%D1%86%D1%96%D0%BD%D0%BA%D0%B0%20%D0%B2%D0%B0%D1%80%D1%82%D0%BE%D1%81%D1%82%D1%96%20%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D1%96%D0%BB%D1%8E%20%D0%BD%D0%B0%20%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D0%BD%D0%BD%D0%BE%D0%BC%D1%83%20%D1%80%D0%B8%D0%BD%D0%BA%D1%83) [(відео захисту)]()
+11. Олійник Євген Віталійович. [Визначення типу файлу за кінцевим фрагметом даних](https://github.com/ssemerikov/ai13/tree/master/%D0%92%D0%B8%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%BD%D1%8F%20%D1%82%D0%B8%D0%BF%D1%83%20%D1%84%D0%B0%D0%B9%D0%BB%D1%83%20%D0%B7%D0%B0%20%D0%BA%D1%96%D0%BD%D1%86%D0%B5%D0%B2%D0%B8%D0%BC%20%D1%84%D1%80%D0%B0%D0%B3%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%BC%20%D0%B4%D0%B0%D0%BD%D0%B8%D1%85)
+12. Пихтіна Інна Олександрівна. [Оцінювання нерухомості](https://github.com/ssemerikov/ai13/tree/master/%D0%9E%D1%86%D1%96%D0%BD%D1%8E%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%BD%D0%B5%D1%80%D1%83%D1%85%D0%BE%D0%BC%D0%BE%D1%81%D1%82%D1%96) [(відео захисту)]()
+13. Сайкевич Валентина Анатоліївна. [Прогнозування курсів валют на ринку Forex](https://github.com/ssemerikov/ai13/tree/master/%D0%9F%D1%80%D0%BE%D0%B3%D0%BD%D0%BE%D0%B7%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%BA%D1%83%D1%80%D1%81%D1%96%D0%B2%20%D0%B2%D0%B0%D0%BB%D1%8E%D1%82%20%D0%BD%D0%B0%20%D1%80%D0%B8%D0%BD%D0%BA%D1%83%20Forex) [(відео захисту)]()
+14. Сироватський Олександр Володимирович. [Прогнозування результатів спортивних змагань](https://github.com/ssemerikov/ai13/tree/master/%D0%9F%D1%80%D0%BE%D0%B3%D0%BD%D0%BE%D0%B7%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D1%96%D0%B2%20%D1%81%D0%BF%D0%BE%D1%80%D1%82%D0%B8%D0%B2%D0%BD%D0%B8%D1%85%20%D0%B7%D0%BC%D0%B0%D0%B3%D0%B0%D0%BD%D1%8C) [(відео захисту)]()
+15. Тараненко Олена Олександрівна. [Прогнозування курсів акцій](https://github.com/ssemerikov/ai13/tree/master/%D0%9F%D1%80%D0%BE%D0%B3%D0%BD%D0%BE%D0%B7%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%BA%D1%83%D1%80%D1%81%D1%96%D0%B2%20%D0%B0%D0%BA%D1%86%D1%96%D0%B9) [(відео захисту)]()
+16. Фадєєва Лілія Олександрівна. [Стискання даних із втратами](https://github.com/ssemerikov/ai13/tree/master/%D0%A1%D1%82%D0%B8%D1%81%D0%BA%D0%B0%D0%BD%D0%BD%D1%8F%20%D0%B4%D0%B0%D0%BD%D0%B8%D1%85%20%D1%96%D0%B7%20%D0%B2%D1%82%D1%80%D0%B0%D1%82%D0%B0%D0%BC%D0%B8) [(відео захисту)]()
