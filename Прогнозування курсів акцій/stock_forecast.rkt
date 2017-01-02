@@ -1,0 +1,631 @@
+#lang racket/gui
+(require net/url)
+
+(define компанія null)
+(define компаннії '("NKE" "AAPL" "YHOO" "SBUX"))
+(define вхідний-файл null)
+(define вихідний-файл null)
+(define тест-файл null)
+
+;трехлойная нейронная сеть (вход, скрытый слой, выход)
+
+(define NUMIN 0)  ;размерность входа
+(define NUMHID 7) ;размерность скрытого слоя
+(define NUMPAT 0) ;количество шаблонов для обучения 
+(define NUMOUT 0) ;размерность выхода
+
+;матрицы весовых коэффициентов
+(define WeightIH null) ;соединения входа и скрытого слоя
+(define WeightHO null) ;соединения скрытого слоя и выходa
+
+;для нормализации
+(define mini 0)
+(define maxi 0) 
+(define mino 0)
+(define maxo 0) 
+
+;функции для создания векторов и матриц
+(define (make-vector-my size)
+  (if (and (integer? size) (> size 0)) 
+      (make-vector size 0.0)
+      (error "Недозволенная размерность вектора")))
+
+(define (make-matrix m n)
+  (if (and (integer? m) (positive? m))
+      (let ( (res (make-vector m 0.0)) )
+        (do ((i 0 (+ i 1)))
+          ( (= i m) res)
+          (vector-set! res i (make-vector-my n))))
+      (error "Недозволенная размерность матрицы")))
+
+
+;;функции для получения/установки значений векторов и матриц
+(define (getvvalue obj i)
+  (vector-ref obj i))
+
+(define (getmvalue obj i j)
+  (vector-ref (vector-ref obj i) j))
+
+(define (setvvalue vec i val)
+  (vector-set! vec i val))
+
+(define (setmvalue matrix i j val)
+  (define tempvec (vector-ref matrix i))
+  (vector-set! tempvec j val)
+  (vector-set! matrix i tempvec))
+
+(define (1+ x) (+ 1 x))
+
+; ф-я створення нейронної мережі
+(define (make-network _NUMIN _NUMOUT _NUMHID)
+  (set! NUMIN _NUMIN)
+  (set! NUMOUT _NUMOUT)
+  (set! NUMHID _NUMHID)
+ 
+  (set! WeightIH (make-matrix (1+ NUMIN) NUMHID))
+  (set! WeightHO (make-matrix (1+ NUMHID) NUMOUT))
+  
+  ; устанавливаем случайные весовые коэффициенты
+  ;(define smallwt 0.5)
+  ;(do ((j 0 (+ 1 j)))
+  ; ((= j NUMHID) )
+  ; (do ((i 0 (+ i 1)))
+  ;   ( (= i (1+ NUMIN)))
+  ;   (setmvalue WeightIH i j  (* 2.0 (- (random) 0.5) smallwt))))
+  ;(do ((k 0 (+ 1 k)))
+  ;  ((= k NUMOUT) )
+  ;  (do ((j 0 (+ j 1)))
+  ;   ( (= j (1+ NUMHID)))
+  ;    (setmvalue WeightHO j k (* 2.0 (- (random) 0.5) smallwt))))
+  ;(savematrix "wih.txt" WeightIH (+ NUMIN 1) NUMHID)
+  ;(savematrix "who.txt" WeightHO (+ NUMHID 1) NUMOUT)
+  (loadcoeffs "wih.txt" "who.txt"))
+
+
+; ф-я навчання нейронної мережі
+(define (train TrainInput TrainTarget Err MaxCount DoOut)
+  (let ((Error 0) (p 0)
+                  (eta 0.5)
+                  (alpha 0.9)
+                  (NUMPAT (vector-length TrainInput)) ;число обучающих шаблонов
+                  (ranpat (make-vector-my NUMPAT))
+                  (NumPattern NUMPAT)
+                  (NumInput NUMIN)
+                  (NumHidden NUMHID)
+                  (NumOutput NUMOUT)
+                  ;временные массивы
+                  (DeltaWeightIH (make-matrix (1+ NUMIN) NUMHID))
+                  (DeltaWeightHO (make-matrix (1+ NUMHID) NUMOUT))
+                  (SumDOW (make-vector-my NUMHID))
+                  (DeltaH (make-vector-my NUMHID))
+                  (DeltaO (make-vector-my NUMOUT))
+                  (SumH (make-vector-my NUMHID))
+                  (Hidden (make-vector-my NUMHID))
+                  (SumO (make-vector-my NUMOUT)) 
+                  (Output (make-vector-my NUMOUT))
+                  (Input (make-matrix NUMPAT NUMIN))
+                  (Target (make-matrix NUMPAT NUMOUT)))
+    
+    ;копируем тренировочные матрицы во временные во избежание порчи
+    (do ((i 0 (1+ i))) ((= i NUMPAT))
+      (do ((k 0 (1+ k))) ((= k NUMIN))
+        (setmvalue Input i k (getmvalue TrainInput i k))))
+    (do ((i 0 (1+ i))) ((= i NUMPAT))
+      (do ((k 0 (1+ k))) ((= k NUMOUT))
+        (setmvalue Target i k (getmvalue TrainTarget i k))))
+    
+    (set! mini (getmvalue Input 0 0))
+    (set! maxi (getmvalue Input 0 0))
+    (set! mino (getmvalue Target 0 0))
+    (set! maxo (getmvalue Target 0 0))
+    
+    ;поиск граничных значений в числовых массивах
+    (do ((i 0 (1+ i))) ((= i NumPattern))
+      (do ((k 0 (1+ k))) ((= k NumInput))
+        (when (> mini (getmvalue Input i k)) 
+          (set! mini (getmvalue Input i k)))
+        (when (< maxi (getmvalue Input i k)) 
+          (set! maxi (getmvalue Input i k))))
+      (do ((k 0 (1+ k))) ((= k NumOutput))
+        (when (> mino (getmvalue Target i k)) 
+          (set! mino (getmvalue Target i k)))
+        (when (< maxo (getmvalue Target i k)) 
+          (set! maxo (getmvalue Target i k)))))
+    
+    ;нормализация
+    (do ((i 0 (1+ i))) ((= i NumPattern))
+      (do ((k 0 (1+ k))) ((= k NumInput))
+        (setmvalue Input i k 
+                   (/ (- (getmvalue Input i k) mini) (- maxi mini))))
+      (do ((k 0 (1+ k))) ((= k NumOutput))
+        (setmvalue Target i k 
+                   (/ (- (getmvalue Target i k) mino) (- maxo mino)))))
+    
+    (set! Error (* 2 Err))              
+    ;цикл обучения по достижению заданной ошибки или числа итераций
+    (do ((epoch 0 (1+ epoch))) ((or (= epoch MaxCount) (< Error Err)) Error)
+      ;перемешиваем шаблоны
+      (do ((p 0 (1+ p))) ((= p NumPattern))
+        (setvvalue ranpat p (random NumPattern)))
+      (set! Error 0.0)
+      
+      ;цикл обучения по шаблонам
+      (do ((np 0 (1+ np))) ((= np NumPattern))
+        ;выбираем шаблон
+        (set! p (getvvalue ranpat np))
+        ;активация скрытого слоя
+        (do ((j 0 (1+ j))) ((= j NumHidden))
+          (setvvalue SumH j (getmvalue WeightIH 0 j))
+          (do ((i 0 (1+ i))) ((= i NumInput))
+            (setvvalue SumH j
+                       (+ (getvvalue SumH j)
+                          (* (getmvalue Input p i)
+                             (getmvalue WeightIH (1+ i) j)))))
+          (setvvalue Hidden j (/ 1.0 
+                                 (+ 1.0
+                                    (exp (- (getvvalue SumH j)))))))
+        ;активация выходного слоя и вычисление ошибки
+        (do ((k 0 (1+ k))) ((= k NumOutput))
+          (setvvalue SumO k (getmvalue WeightHO 0 k))
+          (do ((j 0 (1+ j))) ((= j NumHidden))
+            (setvvalue SumO k (+ (getvvalue SumO k)
+                                 (* (getvvalue Hidden j)
+                                    (getmvalue WeightHO (1+ j) k)))))
+          ;сигмоидальный вывод
+          (setvvalue Output k (/ 1.0
+                                 (+ 1.0
+                                    (exp (- (getvvalue SumO k))))))
+          (set! Error (+ Error
+                         (* 0.5
+                            (- (getmvalue Target p k) (getvvalue Output k))
+                            (- (getmvalue Target p k) (getvvalue Output k)))))
+          (setvvalue DeltaO k 
+                     (* (- (getmvalue Target p k) (getvvalue Output k))
+                        (getvvalue Output k)
+                        (- 1.0 (getvvalue Output k)))))
+        ;обратное распространение ошибки на скрытый слой
+        (do ((j 0 (1+ j))) ((= j NumHidden))
+          (setvvalue SumDOW j 0.0)
+          (do ((k 0 (1+ k))) ((= k NumOutput))
+            (setvvalue SumDOW j
+                       (+ (getvvalue SumDOW j)
+                          (* (getmvalue WeightHO (1+ j) k)
+                             (getvvalue DeltaO k)))))
+          (setvvalue DeltaH j
+                     (* (getvvalue SumDOW j)
+                        (getvvalue Hidden j)
+                        (- 1.0 (getvvalue Hidden j)))))
+        (do ((j 0 (1+ j))) ((= j NumHidden))
+          (setmvalue DeltaWeightIH 0 j
+                     (+ (* eta
+                           (getvvalue DeltaH j))
+                        (* alpha
+                           (getmvalue DeltaWeightIH 0 j))))
+          (setmvalue WeightIH 0 j
+                     (+ (getmvalue WeightIH 0 j)
+                        (getmvalue DeltaWeightIH 0 j)))
+          (do ((i 0 (1+ i))) ((= i NumInput))
+            (setmvalue DeltaWeightIH (1+ i) j
+                       (+ (* eta
+                             (getmvalue Input p i)
+                             (getvvalue DeltaH j))
+                          (* alpha
+                             (getmvalue DeltaWeightIH (1+ i) j))))
+            (setmvalue WeightIH (1+ i) j
+                       (+ (getmvalue WeightIH (1+ i) j)
+                          (getmvalue DeltaWeightIH (1+ i) j)))))
+        (do ((k 0 (1+ k))) ((= k NumOutput))
+          (setmvalue DeltaWeightHO 0 k
+                     (+ (* eta
+                           (getvvalue DeltaO k))
+                        (* alpha
+                           (getmvalue DeltaWeightHO 0 k))))
+          (setmvalue WeightHO 0 k
+                     (+ (getmvalue WeightHO 0 k)
+                        (getmvalue DeltaWeightHO 0 k)))
+          (do ((j 0 (1+ j))) ((= j NumHidden))
+            (setmvalue DeltaWeightHO (1+ j) k
+                       (+ (* eta
+                             (getvvalue Hidden j)
+                             (getvvalue DeltaO k))
+                          (* alpha
+                             (getmvalue DeltaWeightHO (1+ j) k))))
+            (setmvalue WeightHO (1+ j) k
+                       (+ (getmvalue WeightHO (1+ j) k)
+                          (getmvalue DeltaWeightHO (1+ j) k))))))
+      (when DoOut ;отладочный вывод
+        (print (format "epoch=~a, error=~a" epoch Error))
+        (newline)))))
+
+; подача сигнала на вход сети и получение результата
+(define (getoutput BeInput) 
+  (let ((Input (make-vector-my NUMIN))
+        (Output (make-vector-my NUMOUT))
+        (result (make-vector-my NUMOUT))
+        (SumH (make-vector-my NUMHID))
+        (Hidden (make-vector-my NUMHID))
+        (SumO (make-vector-my NUMOUT))
+        (NumInput NUMIN)
+        (NumHidden NUMHID)
+        (NumOutput NUMOUT))
+    
+    ;нормализация входа
+    (do ((k 0 (1+ k)))
+      ((= k NumInput))
+      (setvvalue Input k (/ (- (getvvalue BeInput k) mini)
+                            (- maxi mini))))
+    
+    ;активация скрытого слоя
+    (do ((j 0 (1+ j)))
+      ((= j NumHidden))
+      (setvvalue SumH j (getmvalue WeightIH 0 j))
+      (do ((i 0 (1+ i)))
+        ((= i NumInput))
+        (setvvalue SumH j
+                   (+ (getvvalue SumH j)
+                      (*  (getvvalue Input i)
+                          (getmvalue WeightIH (1+ i) j)))))
+      (setvvalue Hidden j (/ 1.0 
+                             (+ 1.0
+                                (exp (- (getvvalue SumH j)))))))
+    
+    ;активация выходного слоя
+    (do ((k 0 (1+ k)))
+      ((= k NumOutput))
+      (setvvalue SumO k (getmvalue WeightHO 0 k))
+      (do ((j 0 (1+ j)))
+        ((= j NumHidden))
+        (setvvalue SumO k (+ (getvvalue SumO k)
+                             (* (getvvalue Hidden j)
+                                (getmvalue WeightHO (1+ j) k)))))
+      (setvvalue Output k (/ 1.0
+                             (+ 1.0
+                                (exp (- (getvvalue SumO k)))))))
+    
+    ;денормализация выхода
+    (do ((k 0 (1+ k))) ( (= k NumOutput) result)
+      (setvvalue result k (+ (* (getvvalue Output k)
+                                (- maxo mino))
+                             mino)))))
+
+; ф-я отримання прогнозу
+(define (обчислити)
+  (if (= 0 NUMHID)
+      (Показати-повідомлення "Мережа не створена або не завантажена!")
+      (let ((in (make-vector-my 3))
+            (res 0))
+        (vector-set! in 0 (string->number (отримати-значення Поле-курс-день-1)))
+        (vector-set! in 1 (string->number (отримати-значення Поле-курс-день-2)))
+        (vector-set! in 2 (string->number (отримати-значення Поле-курс-день-3)))
+        (set! res (getoutput in))
+        (Показати-повідомлення (number->string (getvvalue res 0))))))
+
+; ф-я для завантаження матриці вагових коефіціентів
+(define (loadcoeffs first second)
+  (set! WeightIH (loadmatrix first))
+  (set! WeightHO (loadmatrix second))
+  (set! NUMIN (- (vector-length WeightIH) 1))
+  (set! NUMOUT (vector-length (vector-ref WeightHO 0)))
+  (set! NUMHID (vector-length (vector-ref WeightIH 0))))
+
+; ф-я для створення та навчання нейронної мережі
+(define (створення-навчання-мережі)
+  ; зчитуємо данні з вхідного файлу
+  (define f (open-input-file вхідний-файл))
+  (set! NUMPAT (read f))
+  (set! NUMIN (read f))
+  (define Input (make-matrix NUMPAT NUMIN))
+  (do ((i 0 (1+ i))) ((= i NUMPAT))
+    (do ((k 0 (1+ k))) ((= k NUMIN))
+      (setmvalue Input i k (read f))))
+  (close-input-port f)
+  
+  ; зчитуємо данні з вихідного файлу
+  (set! f (open-input-file вихідний-файл))
+  (set! NUMPAT (read f))
+  (set! NUMOUT (read f))
+  (define Output (make-matrix NUMPAT NUMOUT))
+  (do ((i 0 (1+ i))) ((= i NUMPAT))
+    (do ((k 0 (1+ k))) ((= k NUMOUT))
+      (setmvalue Output i k (read f))))
+  (close-input-port f)
+
+  ; зтворюємо нейронну мережу
+  (make-network NUMIN NUMOUT NUMHID)
+
+  ; навчаємо нейронну мережу
+  (train Input Output 0.01 150000 #t)
+
+  ; виводимо повідомлення у новому вікні про нашу мережу
+  (Показати-повідомлення (string-append "Размерность входа - " (number->string NUMIN) ", размерность выхода - " (number->string NUMOUT) ", число шаблонов - "  (number->string NUMPAT))))
+
+;с помощью этих функций можно сохранять и 
+;загружать матрицы весовых коэффициентов
+;=====================================
+;
+(define (savematrix filename matr m n)
+  (define f (open-output-file filename #:exists 'replace))
+  (fprintf f "~S ~S " m n )
+  (newline f)  
+  (newline f)  
+  (do ((i 0 (1+ i))) ((= i m))
+    (do ((j 0 (1+ j))) ((= j n))
+      (fprintf f "~S " (getmvalue matr i j)))
+    (newline f))
+  (newline f)  
+  (fprintf f " ~S ~S ~S ~S " mini maxi mino maxo)
+  (newline f)  
+  (close-output-port f))
+;
+;=====================================
+;
+(define (loadmatrix filename) 
+  (define f (open-input-file filename))
+  (define m (read f))
+  (define n (read f))
+  
+  (define res (make-matrix m n ))
+  (do ((i 0 (1+ i))) ((= i m))
+    (do ((k 0 (1+ k))) ((= k n))
+      (setmvalue res i k (read f))))
+  
+  (set! mini (read f))
+  (set! maxi (read f))
+  (set! mino (read f))
+  (set! maxo (read f))
+  (close-input-port f)
+  
+  res)
+
+; ф-я отримання данних з сайту http://www.google.com/finance/ по вказаній компанії
+(define (getdata firm)
+  (define begin "http://www.google.com/finance/historical?q=")
+  (define end "&startdate=Dec+28%2C+2011&enddate=Dec+28%2C+2016&num=200")
+  (define request (string-append begin firm end))
+  (define res '())
+  (define flag #f)
+  (define f (get-pure-port (string->url request)))
+  (do ((s "") )
+    ((eq? s eof) (reverse res))
+    (set! s (read-line f))
+    (unless (eq? s eof)
+      (when (<= (string-length "<td class=\"lm\">") (string-length s))
+        (when (string=? (substring s 0 (string-length "<td class=\"lm\">")) "<td class=\"lm\">")
+          (set! flag #t)))
+      (when flag 
+        (set! s (read-line f))
+        (set! s (substring s (string-length "<td class=\"rgt\">")))
+        (set! s (string->number s))
+        (set! res (append res (list s)))
+        (set! flag #f)))))
+
+; ф-я запису отриманих даних з сайту http://www.google.com/finance/ у файли "input_назва_компанії.txt", "output_назва_компанії.txt", "test_назва_компанії.txt"
+(define (отримати-файли firm howmany in out test)
+  (define res (getdata firm))
+  (define fx (open-output-file in 	#:exists 'replace))
+  (define fy (open-output-file out 	#:exists 'replace))
+  (define fz (open-output-file test 	#:exists 'replace))
+  (fprintf fx "~a ~a\r\n" (- (length res) howmany) howmany)
+  (fprintf fz "~a ~a\r\n" (- (length res) howmany) howmany)
+  (fprintf fy "~a ~a\r\n" (- (length res) howmany) 1)
+  
+  (do ((i 0 (+ 1 i)))
+    ((= i (- (length res) howmany) ))
+    (do ((j i (+ 1 j)))
+      ((= j (+ i 3 )))
+      (fprintf fx "~a " (list-ref res j))
+      (fprintf fz "~a " (list-ref res j)))
+    (fprintf fx "\r\n" )
+    (fprintf fz "\r\n" )
+    (fprintf fy "~a\r\n" (list-ref res (+ i 3))))
+  
+  (close-output-port fx)
+  (close-output-port fz)
+  (close-output-port fy))
+
+; ф-я для отримання значень обєктів форми
+(define (отримати-значення обєкт-форми)
+  (send обєкт-форми get-value))
+
+; ф-я для активування обєктів форми
+(define (активувати обєкт-форми)
+  (send обєкт-форми enable #t))
+
+; ф-я для перевірк на порожність полей вводу
+(define (поля-пусті?)
+  (or (string=? (string-trim (отримати-значення Поле-курс-день-1)) "")
+      (string=? (string-trim (отримати-значення Поле-курс-день-2)) "")
+      (string=? (string-trim (отримати-значення Поле-курс-день-3)) "")))
+
+; ф-я для деактивування обєктів форми
+(define (деактивувати обєкт-форми)
+  (send обєкт-форми enable #f))
+; ф-я перевірки завантажені були матриці коефіцієнтів чи ні
+(define (завантажені-матриці?)
+  (and (not (null? WeightIH))
+       (not (null? WeightHO))))
+
+; ф-я на перевірку данних полей (допустимі типи real, integer)
+(define (значення-полей-числа?)
+  (and (or (integer? (string->number (string-trim (отримати-значення Поле-курс-день-1))))
+            (real? (string->number (string-trim (отримати-значення Поле-курс-день-1)))))
+       (or (integer? (string->number (string-trim (отримати-значення Поле-курс-день-2))))
+            (real? (string->number (string-trim (отримати-значення Поле-курс-день-2)))))
+       (or (integer? (string->number (string-trim (отримати-значення Поле-курс-день-3))))
+            (real? (string->number (string-trim (отримати-значення Поле-курс-день-3)))))
+       (and (positive? (string->number (string-trim (отримати-значення Поле-курс-день-1))))
+            (positive? (string->number (string-trim (отримати-значення Поле-курс-день-2))))
+            (positive? (string->number (string-trim (отримати-значення Поле-курс-день-3)))))
+       (and (not (zero? (string->number (string-trim (отримати-значення Поле-курс-день-1)))))
+            (not (zero? (string->number (string-trim (отримати-значення Поле-курс-день-2)))))
+            (not (zero? (string->number (string-trim (отримати-значення Поле-курс-день-3))))))))
+; ф-я перевірки активності обєкта форми
+(define (активний? обєкт-форми)
+  (send обєкт-форми is-enabled?))
+
+; створимо основну рамку 400 х 300
+(define Рамка-програма (new frame%
+                   [label "Прогнозування курсу акцій"]
+                   [width 400]
+                   [height 300]))
+
+; випадаючий список із назвами компаній
+(define Вибір-список-компанія (new combo-field%
+                                   [label "Компанія"]
+                                   [choices компаннії]
+                                   [parent Рамка-програма]
+                                   [style '(vertical-label)]
+                                   [callback (lambda (combo-field event)
+                                               (let ((обрана-компанія (отримати-значення Вибір-список-компанія)))
+                                                 (if (member обрана-компанія компаннії)
+                                                     (begin (set! компанія обрана-компанія)
+                                                            (set! вхідний-файл (string-append "input_" компанія ".txt"))
+                                                            (set! вихідний-файл (string-append "output_" компанія ".txt"))
+                                                            (set! тест-файл (string-append "test_" компанія ".txt"))
+                                                            (активувати Кнопка-навчити)
+                                                            (if (or (поля-пусті?)
+                                                                    (not (значення-полей-числа?))
+                                                                    (not (завантажені-матриці?)))
+                                                                (деактивувати Кнопка-розрахувати)
+                                                                (активувати Кнопка-розрахувати))
+                                                            ; отримання данних з сайту finance.google.com та запис їх у файли
+                                                            (отримати-файли компанія 3 вхідний-файл вихідний-файл тест-файл))
+                                                     (begin (деактивувати Кнопка-навчити)
+                                                            (деактивувати Кнопка-розрахувати)))))]
+                                   [horiz-margin 175]))
+
+; кнопка після натискання якої відбувається навчання нейронної мережі
+(define Кнопка-навчити (new button%
+                             [parent Рамка-програма]
+                             [label "Навчити нейронну мережу"]
+                             [enabled #f]
+                             [callback (lambda (button event)
+                                         (створення-навчання-мережі)
+                                         (активувати Кнопка-зберегти)
+                                         (if (or (поля-пусті?)
+                                                 (not (значення-полей-числа?))
+                                                 (not (member (отримати-значення Вибір-список-компанія) компаннії))
+                                                 (not (завантажені-матриці?)))
+                                              (деактивувати Кнопка-розрахувати)
+                                              (активувати Кнопка-розрахувати)))]
+                             [vert-margin 5]))
+
+; кнопка після натискання якої матриці вагових кофіціентів збергіються в файли who.txt, wih.txt
+(define Кнопка-зберегти (new button%
+                              [parent Рамка-програма]
+                              [label "Зберегти"]
+                              [enabled #f]
+                              [callback (lambda (button event)
+                                          (savematrix "wih.txt" WeightIH (+ NUMIN 1) NUMHID)
+                                          (savematrix "who.txt" WeightHO (+ NUMHID 1) NUMOUT)
+                                          (Показати-повідомлення "Успішно збережено!"))]
+                              [vert-margin 5]))
+
+; кнопка після натискання якої матриці вагових кофіціентів завантажуються із файлів who.txt, wih.txt
+(define Кнопка-завантажити (new button%
+                              [parent Рамка-програма]
+                              [label "Завантажити"]
+                              [callback (lambda (button event)
+                                          (loadcoeffs "wih.txt" "who.txt")
+                                             (if (or (поля-пусті?)
+                                                     (not (значення-полей-числа?))
+                                                     (not (member (отримати-значення Вибір-список-компанія) компаннії))
+                                                     (not (завантажені-матриці?)))
+                                                 (деактивувати Кнопка-розрахувати)
+                                                 (активувати Кнопка-розрахувати))
+                                          (Показати-повідомлення "Успішно завантажено!"))]
+                              [vert-margin 5]))
+
+; поле для вводу курсу за 1 день
+(define Поле-курс-день-1 (new text-field%
+                              [label "Курс за 1 день"]
+                              [parent Рамка-програма]
+                              [style '(single vertical-label)]
+                              [init-value "0"]
+                              [vert-margin 5]
+                              [horiz-margin 175]
+                              [callback (lambda (text-field event)
+                                          (let ((обрана-компанія (отримати-значення Вибір-список-компанія)))
+                                             (if (or (поля-пусті?)
+                                                     (not (значення-полей-числа?))
+                                                     (not (member (отримати-значення Вибір-список-компанія) компаннії))
+                                                     (not (завантажені-матриці?)))
+                                                 (деактивувати Кнопка-розрахувати)
+                                                 (активувати Кнопка-розрахувати))))]))
+
+; поле для вводу курсу за 2 день
+(define Поле-курс-день-2 (new text-field%
+                              [label "Курс за 2 день"]
+                              [parent Рамка-програма]
+                              [style '(single vertical-label)]
+                              [init-value "0"]
+                              [vert-margin 5]
+                              [horiz-margin 175]
+                              [callback (lambda (text-field event)
+                                          (let ((обрана-компанія (отримати-значення Вибір-список-компанія)))
+                                             (if (or (поля-пусті?)
+                                                     (not (значення-полей-числа?))
+                                                     (not (member (отримати-значення Вибір-список-компанія) компаннії))
+                                                     (not (завантажені-матриці?)))
+                                                 (деактивувати Кнопка-розрахувати)
+                                                 (активувати Кнопка-розрахувати))))]))
+
+; поле для вводу курсу за 3 день
+(define Поле-курс-день-3 (new text-field%
+                              [label "Курс за 3 день"]
+                              [parent Рамка-програма]
+                              [style '(single vertical-label)]
+                              [init-value "0"]
+                              [vert-margin 5]
+                              [horiz-margin 175]
+                              [callback (lambda (text-field event)
+                                          (let ((обрана-компанія (отримати-значення Вибір-список-компанія)))
+                                             (if (or (поля-пусті?)
+                                                     (not (значення-полей-числа?))
+                                                     (not (member (отримати-значення Вибір-список-компанія) компаннії))
+                                                     (not (завантажені-матриці?)))
+                                                 (деактивувати Кнопка-розрахувати)
+                                                 (активувати Кнопка-розрахувати))))]))
+
+; кнопка після натискання якої відбуваеться розрахунок і повертання результату
+(define Кнопка-розрахувати (new button%
+                              [parent Рамка-програма]
+                              [label "Розрахувати"]
+                              [callback (lambda (button event)
+                                          (обчислити))]
+                              [enabled #f]
+                              [vert-margin 5]))
+
+; кнопка виходу з програми
+(define Кнопка-вийти (new button%
+                          [parent Рамка-програма]
+                          [label "Вийти"]
+                          [callback (lambda (button event)
+                                      (send Рамка-програма on-exit))]
+                          [vert-margin 5]))
+
+; створимо рамку для виводу інформаційних повідмлень
+(define Рамка-повідомлення-інфо (new frame%
+                   [label "Повідомлення"]
+                   [width 200]
+                   [height 100]
+                   [alignment '(center center)]))
+
+; обєкт повідомлення в який ми будемо записувати нащі повідомлення
+(define Повідомлення-інфо (new message%
+                                [parent Рамка-повідомлення-інфо]
+                                [label "Повідомленяя"]
+                                [stretchable-width #t]
+                                [stretchable-height #t]
+                                [vert-margin 25]
+                                [horiz-margin 75]
+                                [auto-resize #t]))
+
+; ф-я для зміни обєкта "Повідомлення-інфо" та показу рамки з повідомленням
+(define (Показати-повідомлення повідомлення [заголовок-вікна "Повідомлення"])
+  (send Повідомлення-інфо set-label повідомлення)
+  (send Рамка-повідомлення-інфо set-label заголовок-вікна)
+  (send Рамка-повідомлення-інфо show #t))
+
+; відобразимо рамку програми
+(send Рамка-програма show #t)
