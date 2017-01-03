@@ -683,7 +683,7 @@
                      [enabled #f]
                      [callback (lambda (button event)
                                  (main)
-                                 (message-box "Вы уверенны, что хотите переобучить систему?"  #f '(yes-no))
+                                 (message-box "Вы уверены, что хотите переобучить систему?"  #f '(yes-no))
                                  ;(send Повідомлення set-label "Обучаем")
                                  )]))
 
@@ -710,8 +710,8 @@
 ;Район
 (define operation3 (new choice% [parent Діалог]
                         [label "Район: "]
-                        [choices '("терновской" "покровский" "саксаганский" "металургов" "центрально-городской" "долгинцевский"
-                                                "ингулецкий" "ингулец")]))
+                        [choices '("Терновской" "Покровский" "Саксаганский" "Металлургический" "Центрально-городской" "Долгинцевский"
+                                                "Ингулецкий" "г. Ингулец")]))
 ;Этаж/Этажность
 (define field3 (new text-field% [parent Діалог]
                     [label "Этаж/Этажность: "]
@@ -764,7 +764,7 @@
                      ))
                  (if (or (equal? n1 #f) (equal? n1 0) (equal? n2 #f) (equal? n2 0) (equal? n3 #f) (equal? n3 0) (< n1 n2) (not (or (real? n1) (real? n1)))
                          (> (numerator n3 ) (denominator n3)))
-                     (message-box "Полученный выход" "Не верно заполены поля"  #f '(ok))
+                     (message-box "Полученный выход" "Неверно заполены поля"  #f '(ok))
                      (and (loadcoeffs "wih.txt" "who.txt") (compute)))
                  )))
 (define qqq '())
